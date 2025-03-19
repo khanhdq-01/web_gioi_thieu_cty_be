@@ -3,31 +3,20 @@
 namespace Database\Seeders;
 
 use App\Models\Role;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
 class RoleSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
-    public function run(): void
+
+    public function run()
     {
-        // Schema::disableForeignKeyConstraints();
-        // Role::truncate();
-        // Schema::enableForeignKeyConstraints();
-
-        // $data =[
-        //     'waitress', 'chef', 'cashier', 'manager'
-        // ];
-
-        // foreach ($data as $value) {
-        //     Role::insert([
-        //         'name' => $value,
-        //         'created_at' => now(),
-        //         'updated_at' => now()
-        //     ]);
-        // }
-
+        DB::table('roles')->insert([
+            ['name' => 'Admin', 'description' => 'Quản trị hệ thống'],
+            ['name' => 'Seller', 'description' => 'Người bán hàng'],
+            ['name' => 'Customer', 'description' => 'Khách hàng'],
+        ]);
     }
 }

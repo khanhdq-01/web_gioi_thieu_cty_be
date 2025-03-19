@@ -14,14 +14,11 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'customer_name',
-        'table_no',
-        'order_date', 
-        'order_time',
         'status',
         'total',
-        'waitress_id',
-        'cashier_id'
+        'order_date', 
+        'order_time',
+        'customer_id'
     ];
 
     public function sumOderPrice(){
@@ -38,11 +35,8 @@ class Order extends Model
         return $this->hasMany(OrderDetail::class, 'order_id', 'id');
     }
     
-    public  function waitress(): BelongsTo {
-        return $this->belongsTo(User::class, 'waitress_id', 'id');
-    }
-
-    public  function cashier(): BelongsTo {
-        return $this->belongsTo(User::class, 'cashier_id', 'id');
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'customer_id', 'id');
     }
 }

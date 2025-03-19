@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AbleFinishOrder
+class ableCreateUpdateProduct
 {
     /**
      * Handle an incoming request.
@@ -16,8 +16,8 @@ class AbleFinishOrder
     public function handle(Request $request, Closure $next, string ...$guards): Response
     {
         $user = auth()->user();
-        // return response($user);
-        if($user->role_id != 2) {
+
+        if($user->role_id != 1 && $user->role_id != 2) {
             return response('you cannot access this function ', 403);
         }
         return $next($request);

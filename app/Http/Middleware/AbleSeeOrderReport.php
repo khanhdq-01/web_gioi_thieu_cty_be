@@ -17,7 +17,7 @@ class AbleSeeOrderReport
     {
         $user = auth()->user();
         // return response($user);
-        if($user->role_id != 4) {
+        if($user->role_id != 1 && $user->role_id != 2) {
             return response('you cannot access this function ', 403);
         }
         return $next($request);

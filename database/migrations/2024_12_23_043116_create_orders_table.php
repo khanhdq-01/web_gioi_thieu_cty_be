@@ -13,19 +13,15 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('customer_name',100);
-            $table->string('table_no',5);
+            $table->string('status')->default('pending'); // Trạng thái (pending, completed, canceled)
+            $table->integer('total')->unsigned();
             $table->date('order_date');
             $table->string('order_time',100);
-            $table->string('status',100);
-            $table->integer('total')->unsigned();
-            $table->unsignedBigInteger('waitress_id');
-            $table->unsignedBigInteger('cashier_id');
+            $table->unsignedBigInteger('customer_id');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('waitress_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('cashier_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

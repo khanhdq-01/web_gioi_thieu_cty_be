@@ -11,11 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('items', function (Blueprint $table) {
+        Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name', 100);
+            $table->text('description')->nullable(); // Mô tả sản phẩm
             $table->integer('price')->unsigned();
+            $table->integer('stock'); // Số lượng tồn kho
             $table->string('image', 255)->nullable();
+            $table->foreignId('seller_id')->constrained('users'); // Người bán
             $table->timestamps();
             $table->softDeletes();
         });
@@ -26,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('items');
+        Schema::dropIfExists('products');
     }
 };

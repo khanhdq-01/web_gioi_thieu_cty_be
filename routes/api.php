@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\RouteGroup;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ItemController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\OrderController;
 
@@ -31,28 +31,17 @@ Route::prefix('auth')->group(function(){
 });
 
 Route::middleware(['auth:sanctum'])->group(function(){
-    Route::post('/create-order', function(){
-        return 'create order';
-    })->middleware(['ableCreateOrder']);
-    
-    Route::post('/finish-order', function(){
-        return 'finish order';
-    })->middleware(['ableFinishOrder']);
- 
-
-
     Route::post('/user',[UserController::class, 'store'])->middleware(['ableCreateUser']);
-    Route::delete('/item/{id}', [ItemController::class,'destroy']);
-    Route::get('/item', [ItemController::class,'index']);
-    Route::get('/item/{id}', [ItemController::class,'show']);
-    Route::post('/item', [ItemController::class, 'store'])->middleware(['ableCreateUpdateItem']);
-    Route::patch('/item/{id}', [ItemController::class, 'update'])->middleware(['ableCreateUpdateItem']);
+    Route::delete('/product/{id}', [ProductController::class,'destroy'])->middleware(['ableCreateUpdateProduct']);
+    Route::get('/product', [ProductController::class,'index']);
+    Route::get('/product/{id}', [ProductController::class,'show']);
+    Route::post('/product', [ProductController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
+    Route::patch('/product/{id}', [ProductController::class, 'update'])->middleware(['ableCreateUpdateProduct']);
 
 
-    Route::delete('/order/{id}', [OrderController::class, 'destroy']);
-    Route::get('/order/{id}/set-as-done',[OrderController::class,'setAsDone'])->middleware(['ableFinishOrder']);
+    Route::delete('/order/{id}', [OrderController::class, 'destroy'])->middleware(['ableCreateOrder']);
     Route::get('/order/{id}/payment',[OrderController::class,'payment'])->middleware(['ablePayOrder']);
-    Route::get('/getOrder',[OrderController::class,'index']);
+    Route::get('/order',[OrderController::class,'index']);
     Route::post('/order',[OrderController::class,'store'])->middleware(['ableCreateOrder']);
     Route::get('/order/{id}',[OrderController::class,'show']);
 

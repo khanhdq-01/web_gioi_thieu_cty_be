@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\OrderDetail;
 use DB;
-use App\Models\Item;
+use App\Models\product;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use LDAP\Result;
@@ -12,60 +12,84 @@ use PhpParser\Node\Stmt\TryCatch;
 
 class OrderController extends Controller
 {
-    public function index(){
-        $orders= Order::select('id', 'customer_name', 'table_no', 'order_date', 'order_time', 'status', 'total', 'waitress_id', 'cashier_id')->with(['waitress:id,name', 'cashier:id,name'])->get();
-        return response(['data' => $orders]);
+    public function index(Request $request)
+    {
+        // Lấy danh sách đơn hàng
+        $orders = Order::with([
+            'orderDetail.product:id,name,price'
+        ])
+        ->select('id', 'status', 'total', 'order_date', 'order_time', 'customer_id')
+        ->when(auth()->user()->role_id == 3, function ($query) {
+            // Nếu là Customer, chỉ trả về đơn hàng của họ
+            return $query->where('customer_id', auth()->user()->id);
+        })
+        ->get();
+    
+        return response(['data' => $orders], 200);
     }
 
-    public function show( $id)  {
-
-       $order = Order::findOrFail($id);
-       return  response(['data' => $order->loadMissing(['orderDetail:order_id,price,item_id,qty', 'orderDetail.item:name,id', 'waitress:id,name', 'cashier:id,name'])]);
-        
+    public function show($id)
+    {
+        // Tìm đơn hàng theo ID
+        $order = Order::findOrFail($id);
+    
+        // Trả về thông tin đơn hàng cùng với chi tiết sản phẩm
+        return response([
+            'data' => $order->loadMissing([
+                'orderDetail:order_id,price,product_id,quantity', // Chi tiết đơn hàng
+                'orderDetail.product:id,name,price,description,image' // Thông tin sản phẩm
+            ])
+        ], 200);
     }
     public function store(Request $request) 
     {
-
+        // Validate dữ liệu đầu vào
         $request->validate([
-            'customer_name'=>'required|max:100',
-            'table_no' => 'required|max:6',
+            'products' => 'required|array', // Danh sách sản phẩm
+            'products.*.id' => 'required|exists:products,id', // ID sản phẩm phải tồn tại
+            'products.*.quantity' => 'required|integer|min:1', // Số lượng phải là số nguyên dương
         ]);
-
-        try{
+    
+        try {
             DB::beginTransaction();
-            
-            $data = $request->only(['customer_name', 'table_no']);
+    
+            // Chuẩn bị dữ liệu cho đơn hàng
+            $data = [];
             $data['order_date'] = date('Y-m-d');
             $data['order_time'] = date('H:i:s');
             $data['status'] = 'ordered';
-            $data['total'] = 1000;
-            $data['waitress_id'] = auth()->user()->id;
-            $data['items'] = $request->items;
-
+            $data['customer_id'] = auth()->user()->id; // Lấy ID khách hàng từ người dùng hiện tại
+            $data['total'] = 0; // Gán giá trị mặc định ban đầu cho total
+    
+            // Tạo đơn hàng
             $order = Order::create($data);
-
-            collect($data['items'])->map(function($item) use($order) {
-                $foodDrink = Item::where('id', $item['id'])->first();
+    
+            // Xử lý chi tiết đơn hàng và tính tổng giá trị
+            $total = 0;
+            collect($request->products)->each(function ($product) use ($order, &$total) {
+                $foodDrink = Product::findOrFail($product['id']);
+                $subtotal = $foodDrink->price * $product['quantity'];
+                $total += $subtotal;
+    
                 OrderDetail::create([
                     'order_id' => $order->id,
-                    'item_id' =>$item['id'],
+                    'product_id' => $product['id'],
                     'price' => $foodDrink->price,
-                    'qty' => $item['qty']
-            ]);
+                    'quantity' => $product['quantity'],
+                ]);
             });
-
-            //fix total
-            $order->total = $order->sumOderPrice();
+    
+            // Cập nhật tổng giá trị đơn hàng
+            $order->total = $total;
             $order->save();
-
+    
             DB::commit();
-        }
-        catch(\Throwable $th){
+        } catch (\Throwable $th) {
             DB::rollBack();
-            return response($th);
+            return response(['error' => $th->getMessage()], 500);
         }
-        return response(['data'=> $order]);
-        // return $data;
+    
+        return response(['data' => $order->load('orderDetail.product')], 201);
     }
 
     public function destroy($id)
@@ -80,75 +104,76 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Order deleted successfully',
             'data' => $order->loadMissing([
-                'orderDetail:order_id,price,item_id,qty', 
-                'orderDetail.item:name,id', 
+                'orderDetail:order_id,price,product_id,quantity', 
+                'orderDetail.product:name,id', 
                 'waitress:id,name', 
                 'cashier:id,name'
             ])
         ]);
     }
 
-    public function setAsDone($id){
-         $order = Order::findOrFail($id);
-           
-         if($order->status != 'ordered') {
-            return response('thay đổi trạng thái đơn hàng thành thực hiện thành công', 404);
-         }
-         $order->status = 'done';
-         $order->save();
-
-         return response(['data' => $order->loadMissing(['orderDetail:order_id,price,item_id,qty', 'orderDetail.item:name,id', 'waitress:id,name', 'cashier:id,name'])]);
-
-    }
-
-    public function payment($id){
+    public function payment($id)
+    {
+        // Tìm đơn hàng theo ID
         $order = Order::findOrFail($id);
-       
-        if($order->status != 'done') {
-           return response('payment cannot done because the status is not ordered ', 404);
+    
+        // Kiểm tra trạng thái đơn hàng
+        if ($order->status !== 'ordered') {
+            return response()->json(['message' => 'Only orders with status "ordered" can be paid.'], 400);
         }
-        $order->status = 'paid';
-        $order->cashier_id = auth()->user()->id;
+    
+        // Xử lý logic thanh toán (giả sử thanh toán thành công)
+        // tích hợp cổng thanh toán tại đây nếu cần
+    
+        // Cập nhật trạng thái đơn hàng thành "paid" hoặc "completed"
+        $order->status = 'paid'; // Hoặc 'completed' nếu thanh toán đồng nghĩa với hoàn thành
         $order->save();
-
-        return response(['data' => $order->loadMissing(['orderDetail:order_id,price,item_id,qty', 'orderDetail.item:name,id', 'waitress:id,name', 'cashier:id,name'])]);
-   }
-
-   public function orderReport(Request $request)
-   {
-
-    $data =Order::whereMonth('order_date', $request->month);
-    $orders= $data
-    ->select('id', 'customer_name', 'table_no', 'order_date', 'order_time', 'status', 'total', 'waitress_id', 'cashier_id')
-    ->with(['waitress:id,name', 'cashier:id,name'])
-    ->get();
-
-    $orderCount =$data->count();
-    $maxPayment = $data->max('total');
-    $minPayment = $data->min('total');
-
-    $result = [
-        'orderCount' => $orderCount,
-        'maxPayment' => $maxPayment,
-        'minPayment' => $minPayment,
-        'orders' => $orders
-    ];
-
-    return response(['data' => $result]);
-   }
+    
+        return response()->json(['message' => 'Order payment successful.', 'data' => $order], 200);
+    }
+    public function orderReport(Request $request)
+    {
+        $user = auth()->user();
+    
+        // Nếu là Admin, trả về toàn bộ báo cáo đơn hàng
+        if ($user->role_id == 1) {
+            $orders = Order::with([
+                'orderDetail.product:id,name,price', // Chi tiết sản phẩm trong đơn hàng
+                'customer:id,name,email' // Thông tin khách hàng (tên và email)
+            ])
+            ->select('id', 'status', 'total', 'order_date', 'order_time', 'customer_id')
+            ->get();
+        }
+    
+        // Nếu là Seller, chỉ trả về báo cáo các đơn hàng liên quan đến sản phẩm của họ
+        elseif ($user->role_id == 2) {
+            $orders = Order::whereHas('orderDetail.product', function ($query) use ($user) {
+                $query->where('seller_id', $user->id);
+            })
+            ->with([
+                'orderDetail.product:id,name,price', // Chi tiết sản phẩm trong đơn hàng
+                'customer:id,name,email' // Thông tin khách hàng (tên và email)
+            ])
+            ->select('id', 'status', 'total', 'order_date', 'order_time', 'customer_id')
+            ->get();
+        }
+    
+        return response()->json(['data' => $orders], 200);
+    }
 
     public function topDishes()
     {
-        $topDishes = OrderDetail::select('items.id', 'items.name', 'items.price', 'items.image')
-        ->selectRaw('SUM(order_details.qty) as total_sold')
-        ->join('items', 'order_details.item_id', '=', 'items.id') // Sửa 'order_detail' thành 'order_details'
-        ->groupBy('items.id', 'items.name', 'items.price', 'items.image')
-        ->orderByDesc('total_sold')
-        ->limit(3)
-        ->get();
+        // Lấy ra 5 sản phẩm bán chạy nhất
+        $topDishes = OrderDetail::select('products.id', 'products.name', 'products.price', 'products.image')
+            ->selectRaw('SUM(order_details.quantity) as total_sold') // Tính tổng số lượng bán
+            ->join('products', 'order_details.product_id', '=', 'products.id') // Kết nối với bảng products
+            ->groupBy('products.id', 'products.name', 'products.price', 'products.image') // Nhóm theo sản phẩm
+            ->orderByDesc('total_sold') // Sắp xếp giảm dần theo số lượng bán
+            ->limit(5) // Lấy ra 5 sản phẩm
+            ->get();
     
-    
-        return response()->json(['data' => $topDishes]);
+        // Trả về dữ liệu
+        return response()->json(['data' => $topDishes], 200);
     }
 
 }

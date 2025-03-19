@@ -65,9 +65,8 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'ableCreateOrder' => \App\Http\Middleware\AbleCreateOrder::class,
-        'ableFinishOrder' => \App\Http\Middleware\AbleFinishOrder::class,
         'ableCreateUser' => \App\Http\Middleware\AbleCreateUser::class,
-        'ableCreateUpdateItem' => \App\Http\Middleware\AbleCreateUpdateItem::class,
+        'ableCreateUpdateProduct' => \App\Http\Middleware\AbleCreateUpdateProduct::class,
         'ablePayOrder' => \App\Http\Middleware\AblePayOrder::class,
         'ableSeeOrderReport' => \App\Http\Middleware\AbleSeeOrderReport::class,
     ];

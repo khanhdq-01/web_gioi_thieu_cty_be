@@ -15,7 +15,7 @@ class UserController extends Controller
         'name' => 'required|max:255',
         'email' => 'required|unique:users',
         'password' => 'required|max:255',
-        'role_id' => 'required|'.Rule::in(['1','2','3','4']),
+        'role_id' => 'required|'.Rule::in(['1','2','3']),
         ]);
        $request['password'] = Hash::make($request->password);
        $user = User::create($request->all());

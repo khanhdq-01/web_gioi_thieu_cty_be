@@ -15,22 +15,17 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Schema::disableForeignKeyConstraints();
-        // User::truncate();
-        // Schema::enableForeignKeyConstraints();
+        Schema::disableForeignKeyConstraints();
+        User::truncate();
+        Schema::enableForeignKeyConstraints();
 
-        // $data =[
-        //     'waitress', 'chef', 'cashier', 'manager'
-        // ];
-
-        //     User::insert([
-        //         'name' => 'manager',
-        //         'email' => 'manager@email.com',
-        //         'password'=> Hash::make('123'),
-        //         'role_id' => 4
-        //     ]);
+            User::insert([
+                'name' => 'admin',
+                'email' => 'admin@gmail.com',
+                'password'=> Hash::make('123'),
+                'role_id' => 1
+            ]);
         
-        // khac manager thi pass chung la 124
         
     }
 }

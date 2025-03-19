@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id(); // unsignedBigInteger
-            $table->string('name');
+            $table->string('name'); // Tên role (e.g., Admin, Seller, Customer)
+            $table->string('description')->nullable(); // Mô tả vai trò
             $table->timestamps();
-        });        
+        });
     }
 
     /**

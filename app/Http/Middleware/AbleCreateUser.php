@@ -17,9 +17,16 @@ class AbleCreateUser
     {
         $user = auth()->user();
 
-        if($user->role_id != 4) {
-            return response('you cannot access this function ', 403);
+        // Kiểm tra nếu người dùng chưa đăng nhập
+        if (!$user) {
+            return response('Unauthorized. Please log in.', 401);
         }
+
+        // Kiểm tra nếu người dùng không có quyền truy cập
+        if ($user->role_id != 1) {
+            return response('You cannot access this function.', 403);
+        }
+
         return $next($request);
     }
 }

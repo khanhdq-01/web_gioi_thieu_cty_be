@@ -9,20 +9,17 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('cashier_id')->nullable()->change();
+            $table->decimal('total', 10, 2)->default(0)->change(); // Đặt giá trị mặc định là 0
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function down()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->unsignedBigInteger('cashier_id')->nullable(false)->change();
-          });
+            $table->decimal('total', 10, 2)->nullable(false)->change(); // Bỏ giá trị mặc định
+        });
     }
 };
