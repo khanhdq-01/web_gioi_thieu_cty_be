@@ -2,41 +2,30 @@
 
 namespace App\Models;
 
-use App\Models\OrderDetail;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use function PHPUnit\Framework\returnArgument;
+use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'status',
+        'customer_id',
         'total',
-        'order_date', 
+        'status',
+        'order_date',
         'order_time',
-        'customer_id'
     ];
 
-    public function sumOderPrice(){
-        $orderDetail = OrderDetail::where('order_id',$this->id)->select('price','qty')->get();
-        $totalPerItem = collect($orderDetail)->map(function($item){
-            return $item->price * $item->qty;
-        });
-        $sum = collect($totalPerItem)->sum();
-
-        return $sum;
-    }
-
-    public function OrderDetail(): HasMany {
-        return $this->hasMany(OrderDetail::class, 'order_id', 'id');
-    }
-    
-    public function customer(): BelongsTo
+    // Định nghĩa quan hệ với model User (khách hàng)
+    public function customer()
     {
-        return $this->belongsTo(User::class, 'customer_id', 'id');
+        return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    // Định nghĩa quan hệ với OrderDetail
+    public function orderDetail()
+    {
+        return $this->hasMany(OrderDetail::class, 'order_id');
     }
 }
