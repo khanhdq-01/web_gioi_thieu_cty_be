@@ -3,10 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CartController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\UserInfoController;
+use App\Http\Controllers\CompanyProfileController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -23,23 +23,19 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/user', [UserController::class, 'store'])->middleware(['ableCreateUser']);
 
     // Product APIs
-    Route::get('/product', [ProductController::class, 'index']);
-    Route::get('/product/{id}', [ProductController::class, 'show']);
-    Route::post('/product', [ProductController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
-    Route::patch('/product/{id}', [ProductController::class, 'update'])->middleware(['ableCreateUpdateProduct']);
-    Route::delete('/product/{id}', [ProductController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
+    Route::get('/article', [ArticleController::class, 'index']);
+    Route::get('/article/{id}', [ArticleController::class, 'show']);
+    Route::post('/article', [ArticleController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
+    Route::patch('/article/{id}', [ArticleController::class, 'update'])->middleware(['ableCreateUpdateProduct']);
+    Route::delete('/article/{id}', [ArticleController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
 
-    // Cart APIs
-    Route::post('/cart', [CartController::class, 'addToCart']);
-    Route::get('/cart', [CartController::class, 'viewCart']);
-    Route::post('/cart/place-order', [CartController::class, 'placeOrder'])->middleware(['auth:sanctum']);
+    //User info
+    Route::post('/user-info', [UserInfoController::class, 'store']);
+    Route::get('/user-info', [UserInfoController::class, 'index']);
+    Route::delete('/user-info/{id}', [UserInfoController::class, 'destroy']);
 
-    // Order APIs
-    Route::get('/order', [OrderController::class, 'index']);
-
-    
-
-    // Reports and Statistics
-    Route::get('/order-report', [OrderController::class, 'orderReport'])->middleware(['ableSeeOrderReport']);
-    Route::get('/top-dishes', [OrderController::class, 'topDishes']);
+    // Company profile
+    Route::post('/company-profile', [CompanyProfileController::class, 'store']);
+    Route::get('/company-profile', [CompanyProfileController::class, 'index']);
+    Route::delete('/company-profile/{id}', [CompanyProfileController::class, 'destroy']);
 });

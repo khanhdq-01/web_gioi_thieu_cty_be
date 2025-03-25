@@ -15,6 +15,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/test', function () {
-    $order = Order::find(6);
-    return $order->sumOderPrice();
+// 
 });

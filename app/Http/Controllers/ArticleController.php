@@ -3,20 +3,20 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
-use App\Models\Product;
+use App\Models\Article;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-class ProductController extends Controller
+class ArticleController extends Controller
 {
 
     public function index() {
-        $iems = Product::select('id','name','description', 'price','stock' ,'image','seller_id')->get();
+        $iems = Article::select('id','name','description', 'image','seller_id')->get();
         return response(['data'=> $iems]);
     }
 
     public function show($id){
-        $item = Product::findOrFail($id);
+        $item = Article::findOrFail($id);
         return response(['data'=>$item]);
 
     }
@@ -24,7 +24,7 @@ class ProductController extends Controller
     public function destroy($id)
     {
     // Tìm sản phẩm theo ID
-    $item = Product::findOrFail($id);
+    $item = Article::findOrFail($id);
 
     // Xóa sản phẩm (Soft Delete)
     $item->delete();
@@ -38,9 +38,7 @@ class ProductController extends Controller
         // Validate các trường
         $request->validate([
             'name' => 'required|max:100',
-            'description' => 'required|max:300',
-            'price' => 'required|integer|min:0',
-            'stock' => 'required|integer|min:0', // Validate stock
+            'description' => 'required|max:3000',
             'image_file' => 'nullable|mimes:jpg,png|max:2048', // Validate file ảnh
         ]);
     
@@ -58,7 +56,7 @@ class ProductController extends Controller
         $request['seller_id'] = auth()->user()->id;
     
         // Tạo sản phẩm
-        $item = Product::create($request->only(['name', 'description', 'price', 'stock', 'image', 'seller_id']));
+        $item = Article::create($request->only(['name', 'description', 'image', 'seller_id']));
     
         return response(['data' => $item], 201);
     }
@@ -68,13 +66,11 @@ class ProductController extends Controller
         $request->validate([
             'name' => 'required|max:100',
             'description' => 'nullable|max:300', // Cho phép mô tả có thể không thay đổi
-            'price' => 'required|integer|min:0',
-            'stock' => 'nullable|integer|min:0', // Cho phép cập nhật tồn kho
             'image_file' => 'nullable|mimes:jpg,png|max:2048', // Validate file ảnh
         ]);
     
         // Tìm sản phẩm theo ID
-        $item = Product::findOrFail($id);
+        $item = Article::findOrFail($id);
     
         // Xử lý file ảnh (nếu có)
         if ($request->file('image_file')) {
@@ -90,7 +86,7 @@ class ProductController extends Controller
         }
     
         // Chỉ cập nhật các trường cần thiết
-        $item->update($request->only(['name', 'description', 'price', 'stock', 'image']));
+        $item->update($request->only(['name', 'description', 'image']));
     
         return response(['data' => $item], 200);
     }
