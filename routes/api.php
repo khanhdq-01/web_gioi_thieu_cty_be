@@ -30,11 +30,12 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::delete('/article/{id}', [ArticleController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
 
     //User info
-    Route::post('/user-info', [UserInfoController::class, 'store']);
     Route::delete('/user-info/{id}', [UserInfoController::class, 'destroy']);
 
     // Company profile
     Route::post('/company-profile', [CompanyProfileController::class, 'store']);
+    Route::get('/company-profile/{id}', [CompanyProfileController::class, 'show']);
+    Route::put('/company-profile/{id}', [CompanyProfileController::class, 'update']);
     Route::delete('/company-profile/{id}', [CompanyProfileController::class, 'destroy']);
 
 
@@ -49,6 +50,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
 Route::get('/article', [ArticleController::class, 'index']);
 Route::get('/article/{id}', [ArticleController::class, 'show']);
+Route::post('/user-info', [UserInfoController::class, 'store']);
 Route::get('/user-info', [UserInfoController::class, 'index']);
 Route::get('/company-profile', [CompanyProfileController::class, 'index']);
 
