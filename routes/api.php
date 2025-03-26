@@ -1,14 +1,16 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Api\AchievementController;
+use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ArticleController;
-use App\Http\Controllers\UserInfoController;
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\JobController;
-use App\Http\Controllers\ApplicationController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserInfoController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -46,6 +48,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('applications', [ApplicationController::class, 'index']); // Admin xem danh sách ứng viên
     Route::get('applications/{id}', [ApplicationController::class, 'show']); // Admin xem chi tiết ứng viên
     Route::get('applications/{id}/download-cv', [ApplicationController::class, 'downloadCV']); // Admin tải CV
+
+    Route::get('/achievements', [AchievementController::class, 'index']);
+    Route::post('/achievements', [AchievementController::class, 'store']);
+    Route::put('/achievements/{id}', [AchievementController::class, 'update']);
+    Route::delete('/achievements/{id}', [AchievementController::class, 'destroy']);
 });
 
 Route::get('/article', [ArticleController::class, 'index']);
