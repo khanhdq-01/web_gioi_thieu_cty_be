@@ -23,19 +23,20 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('/user', [UserController::class, 'store'])->middleware(['ableCreateUser']);
 
     // Product APIs
-    Route::get('/article', [ArticleController::class, 'index']);
-    Route::get('/article/{id}', [ArticleController::class, 'show']);
     Route::post('/article', [ArticleController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
     Route::patch('/article/{id}', [ArticleController::class, 'update'])->middleware(['ableCreateUpdateProduct']);
     Route::delete('/article/{id}', [ArticleController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
 
     //User info
     Route::post('/user-info', [UserInfoController::class, 'store']);
-    Route::get('/user-info', [UserInfoController::class, 'index']);
     Route::delete('/user-info/{id}', [UserInfoController::class, 'destroy']);
 
     // Company profile
     Route::post('/company-profile', [CompanyProfileController::class, 'store']);
-    Route::get('/company-profile', [CompanyProfileController::class, 'index']);
     Route::delete('/company-profile/{id}', [CompanyProfileController::class, 'destroy']);
 });
+
+Route::get('/article', [ArticleController::class, 'index']);
+Route::get('/article/{id}', [ArticleController::class, 'show']);
+Route::get('/user-info', [UserInfoController::class, 'index']);
+Route::get('/company-profile', [CompanyProfileController::class, 'index']);
