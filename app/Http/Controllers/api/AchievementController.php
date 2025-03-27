@@ -47,8 +47,8 @@ class AchievementController extends Controller
 
     public function update(Request $request, $id)
     {
-        if ($request->has('_method') && $request->input('_method') === 'PUT') {
-            $request->merge($request->except('_method'));
+        if ($request->isMethod('POST') && $request->has('_method')) {
+            $request->setMethod($request->input('_method'));
         }
         $achievement = Achievement::findOrFail($id);
         

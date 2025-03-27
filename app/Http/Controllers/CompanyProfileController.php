@@ -45,13 +45,9 @@ class CompanyProfileController extends Controller
 
     // Cập nhật hồ sơ công ty
     public function update(Request $request, $id) {
-        // Laravel xử lý PUT với form-data khi có _method=PUT
-        if ($request->has('_method') && $request->input('_method') === 'PUT') {
-            $request->merge($request->except('_method'));
+        if ($request->isMethod('POST') && $request->has('_method')) {
+            $request->setMethod($request->input('_method'));
         }
-    
-        // Debug để kiểm tra dữ liệu gửi lên
-        info('Request Data:', $request->all());
     
         // Validate request
         $request->validate([
