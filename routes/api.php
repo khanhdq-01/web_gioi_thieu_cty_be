@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SlideController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\UserInfoController;
 use App\Http\Controllers\ApplicationController;
@@ -26,13 +27,18 @@ Route::middleware(['auth:sanctum'])->group(function(){
     // User APIs
     Route::post('/user', [UserController::class, 'store'])->middleware(['ableCreateUser']);
 
-    // Product APIs
+    // Article APIs
     Route::post('/article', [ArticleController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
     Route::patch('/article/{id}', [ArticleController::class, 'update'])->middleware(['ableCreateUpdateProduct']);
     Route::delete('/article/{id}', [ArticleController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
 
     //User info
     Route::delete('/user-info/{id}', [UserInfoController::class, 'destroy']);
+
+    //Slider
+    Route::post('/slide', [SlideController::class, 'store'])->middleware(['ableCreateUpdateProduct']);
+    Route::get('/slide', [SlideController::class, 'index'])->middleware(['ableCreateUpdateProduct']);
+    Route::delete('/slide/{id}', [SlideController::class, 'destroy'])->middleware(['ableCreateUpdateProduct']);
 
     // Company profile
     Route::post('/company-profile', [CompanyProfileController::class, 'store']);
@@ -51,6 +57,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::post('/achievements', [AchievementController::class, 'store']);
     Route::put('/achievements/{id}', [AchievementController::class, 'update']);
+
     Route::delete('/achievements/{id}', [AchievementController::class, 'destroy']);
 });
 
@@ -65,3 +72,4 @@ Route::get('jobs/{id}', [JobController::class, 'show']); // Chi tiết công vi�
 Route::post('applications', [ApplicationController::class, 'store']); // Khách gửi đơn ứng tuyển
 
 Route::get('/achievements', [AchievementController::class, 'index']);
+Route::get('/achievements/{id}', [AchievementController::class, 'show']);

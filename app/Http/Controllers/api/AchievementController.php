@@ -15,6 +15,17 @@ class AchievementController extends Controller
         $achievements = Achievement::orderBy('date', 'desc')->get();
         return response()->json($achievements);
     }
+    public function show($id)
+    {
+        $achievement = Achievement::find($id);
+
+        if (!$achievement) {
+            return response()->json(['message' => 'Không tìm thấy thành tựu'], 404);
+        }
+
+        return response()->json($achievement);
+    }
+
 
     public function store(Request $request)
     {
