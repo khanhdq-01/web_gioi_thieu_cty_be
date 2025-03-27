@@ -51,6 +51,7 @@ Route::middleware(['auth:sanctum'])->group(function(){
 
     Route::post('/achievements', [AchievementController::class, 'store']);
     Route::put('/achievements/{id}', [AchievementController::class, 'update']);
+
     Route::delete('/achievements/{id}', [AchievementController::class, 'destroy']);
 });
 
@@ -65,3 +66,4 @@ Route::get('jobs/{id}', [JobController::class, 'show']); // Chi tiết công vi�
 Route::post('applications', [ApplicationController::class, 'store']); // Khách gửi đơn ứng tuyển
 
 Route::get('/achievements', [AchievementController::class, 'index']);
+Route::get('/achievements/{id}', [AchievementController::class, 'show']);
