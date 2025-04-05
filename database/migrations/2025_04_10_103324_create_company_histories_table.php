@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('articles', function (Blueprint $table) {
+        Schema::create('company_histories', function (Blueprint $table) {
             $table->id();
-            $table->string('name', 100);
-            $table->text('description')->nullable(); // Mô tả sản phẩm
-            $table->string('image', 255)->nullable();
+            $table->year('year');
+            $table->string('month')->nullable(); // Dạng "Tháng 09"
+            $table->text('event'); // Mô tả sự kiện
             $table->timestamps();
-            $table->softDeletes();
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('company_histories');
     }
 };

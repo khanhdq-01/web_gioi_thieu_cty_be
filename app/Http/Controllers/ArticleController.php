@@ -2,92 +2,99 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use App\Models\Article;
 use Illuminate\Http\Request;
+use App\Models\Article;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class ArticleController extends Controller
 {
+    public function store(Request $request) {
+        $request->validate([
+            'name' => 'required|max:100',
+            'description' => 'required|max:300',
+            'image' => 'nullable|mimes:jpg,png',
+        ]);
+
+        $imageName = null;
+        if ($request->file('image')) {
+            $file = $request->file('image');
+            $fileName = $file->getClientOriginalName();
+            $newName = Carbon::now()->timestamp . '_' . $fileName;
+            
+            // Store the image in the public disk under the 'articles' folder
+            Storage::disk('public')->putFileAs('articles', $file, $newName);
+            $imageName = $newName;
+        }
+    
+        // Create the articles and store only relevant fields
+        $article = Article::create([
+            'name' => $request->input('name'),
+            'description' => $request->input('description'),
+            'image' => $imageName,  // Store the image file name if it exists
+        ]);
+    
+        return response(['data' => $article], 201);  // Added status code for resource creation
+    }
+    
+    
 
     public function index() {
-        $iems = Article::select('id','name','description', 'image','seller_id')->get();
-        return response(['data'=> $iems]);
+        $articles = Article::select('id', 'name','description', 'image')->get();
+        return response(['data'=> $articles]);
     }
 
-    public function show($id){
-        $item = Article::findOrFail($id);
-        return response(['data'=>$item]);
+    public function show($id)
+    {
+        $articles = Article::findOrFail($id);
+        return response()->json($articles);
+    }
 
+    public function update(Request $request, $id) {
+        if ($request->isMethod('POST') && $request->has('_method')) {
+            $request->setMethod($request->input('_method'));
+        }
+        // Validate request
+        $request->validate([
+            'name' => 'required|max:100',
+            'description' => 'required|max:300',
+            'image' => 'nullable|mimes:jpg,png|max:2048',
+        ]);
+
+        // Tìm dữ liệu
+        $article = Article::findOrFail($id);
+        $dataToUpdate = $request->only(['name','description', 'image']);
+    
+        // Xử lý file ảnh
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath =  $fileName;
+    
+            // Lưu file vào storage
+            Storage::disk('public')->putFileAs('articles', $file, $fileName);
+            $dataToUpdate['image'] = $filePath;
+        }
+    
+        // Cập nhật dữ liệu
+        $article->update($dataToUpdate);
+    
+        return response(['data' => $article], 200);
     }
 
     public function destroy($id)
     {
-    // Tìm sản phẩm theo ID
-    $item = Article::findOrFail($id);
+        $article = Article::findOrFail($id);
 
-    // Xóa sản phẩm (Soft Delete)
-    $item->delete();
-
-    return response()->json([
-        'message' => 'Product deleted successfully',
-        'data' => $item
-    ], 200);
-    }
-    public function store(Request $request) {
-        // Validate các trường
-        $request->validate([
-            'name' => 'required|max:100',
-            'description' => 'required|max:3000',
-            'image_file' => 'nullable|mimes:jpg,png|max:2048', // Validate file ảnh
-        ]);
-    
-        // Xử lý file ảnh (nếu có)
-        if ($request->file('image_file')) {
-            $file = $request->file('image_file');
-            $fileName = $file->getClientOriginalName();
-            $newName = Carbon::now()->timestamp . '_' . $fileName;
-    
-            Storage::disk('public')->putFileAs('items', $file, $newName);
-            $request['image'] = $newName; // Lưu tên file vào cột image
+        if (!$article) {
+            return response()->json(['message' => 'Order not found'], 404);
         }
-    
-        // Lấy seller_id từ người dùng hiện tại
-        $request['seller_id'] = auth()->user()->id;
-    
-        // Tạo sản phẩm
-        $item = Article::create($request->only(['name', 'description', 'image', 'seller_id']));
-    
-        return response(['data' => $item], 201);
+
+        $article->delete();
+        return response()->json([
+            'message' => 'Order deleted successfully',
+            'data' => $article
+        ]);
     }
 
-    public function update(Request $request, $id) {
-        // Validate các trường
-        $request->validate([
-            'name' => 'required|max:100',
-            'description' => 'nullable|max:300', // Cho phép mô tả có thể không thay đổi
-            'image_file' => 'nullable|mimes:jpg,png|max:2048', // Validate file ảnh
-        ]);
-    
-        // Tìm sản phẩm theo ID
-        $item = Article::findOrFail($id);
-    
-        // Xử lý file ảnh (nếu có)
-        if ($request->file('image_file')) {
-            $file = $request->file('image_file');
-            $fileName = $file->getClientOriginalName();
-            $newName = Carbon::now()->timestamp . '_' . $fileName;
-    
-            // Lưu file vào thư mục 'items' trong storage
-            Storage::disk('public')->putFileAs('items', $file, $newName);
-    
-            // Gán tên file mới vào request để cập nhật cột 'image'
-            $request['image'] = $newName;
-        }
-    
-        // Chỉ cập nhật các trường cần thiết
-        $item->update($request->only(['name', 'description', 'image']));
-    
-        return response(['data' => $item], 200);
-    }
 }
